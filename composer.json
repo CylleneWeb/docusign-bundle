@@ -1,5 +1,5 @@
 {
-    "name": "gheb/docusign-bundle",
+    "name": "CylleneWeb/docusign-bundle",
     "description": "Symfony Bundle for electronic document signature with Docusign",
     "homepage": "https://github.com/GregoireHebert/docusign-bundle",
     "license": "MIT",
