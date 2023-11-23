@@ -40,7 +40,19 @@ final class CreateSignature implements EnvelopeBuilderCallableInterface
         }
 
         foreach ($signatures as $signature) {
-            $this->envelopeBuilder->addSignatureZone($signature['page'], $signature['x_position'], $signature['y_position']);
+            $isNotMandatory = null;
+
+            if(isset($signature['isNotMandatory'])){
+                $isNotMandatory = $signature['isNotMandatory'];
+            }
+
+            if(isset($signature['anchor_string'])){
+                $this->envelopeBuilder->addAnchorSignatureZone($signature['anchor_string'], $signature, $isNotMandatory);
+            }
+            else {
+                $this->envelopeBuilder->addSignatureZone($signature['page'], $signature['x_position'], $signature['y_position']);
+            }
+
         }
     }
 }

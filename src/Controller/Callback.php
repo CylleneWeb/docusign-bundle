@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace DocusignBundle\Controller;
 
+use DocuSign\eSign\Api\EnvelopesApi;
 use DocusignBundle\DocusignBundle;
 use DocusignBundle\Events\DocumentSignatureCompletedEvent;
 use DocusignBundle\Translator\TranslatorAwareInterface;

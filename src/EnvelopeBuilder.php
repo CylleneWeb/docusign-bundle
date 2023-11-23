@@ -148,6 +148,22 @@ final class EnvelopeBuilder implements EnvelopeBuilderInterface
         return $this;
     }
 
+    public function addAnchorSignatureZone(string $anchorString, array $offsets = [], ?bool $isNotMandatory = false, ?int $recipientId = null): self
+    {
+        $this->signatureZones[] = new Model\SignHere([
+            'document_id' => $this->docReference,
+            'recipient_id' => $recipientId ?? $this->signatureNo,
+            'tab_label' => "Signature {$this->signatureNo}",
+            'anchor_string' => $anchorString,
+            'anchor_x_offset' => $offsets['x_offset'] ?? '0',
+            'anchor_y_offset' => $offsets['y_offset'] ?? '0',
+            'optional' => $isNotMandatory
+        ]);
+
+        return $this;
+    }
+
+
     public function addCallbackParameter($name, $value): self
     {
         $this->callbackParameters[$name] = $value;
@@ -162,7 +178,7 @@ final class EnvelopeBuilder implements EnvelopeBuilderInterface
         return $this;
     }
 
-    public function addSigner(string $name, string $email): self
+    public function addSigner(string $name, string $email, ?int $routingOrder = null): self
     {
         if (empty($this->signatureZones)) {
             throw new \LogicException('You must create the signature zones before');
@@ -173,6 +189,7 @@ final class EnvelopeBuilder implements EnvelopeBuilderInterface
         $data = [
             'email' => $email,
             'name' => $name,
+            'routing_order' => $routingOrder,
             'recipient_id' => $this->docReference,
         ];
 

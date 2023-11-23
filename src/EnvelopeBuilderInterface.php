@@ -33,7 +33,7 @@ interface EnvelopeBuilderInterface
 
     public function addWebhookParameter($name, $value);
 
-    public function addSigner(string $name, string $email);
+    public function addSigner(string $name, string $email, ?int $routing_order);
 
     public function setEnvelopeDefinition(?Model\EnvelopeDefinition $envelopeDefinition): void;
 

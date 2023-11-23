@@ -26,6 +26,7 @@
         "php": ">=7.2",
         "ext-SimpleXML": "*",
         "docusign/esign-client": "^5.0 || ^6.0",
+        "docusign/click-client": "^1.4",
         "lcobucci/jwt": "^3.3.1 || ^4.0",
         "league/flysystem": "^1.1 || ^2.3",
         "psr/log": "^1.1 || ^2.0 || ^3.0",

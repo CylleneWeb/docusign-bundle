@@ -69,7 +69,7 @@ class SignatureExtractor
         }
 
         /** @var array|null $signatures */
-        $signatures = $request->query->get('signatures');
+        $signatures = $request->get('signatures');
 
         if (null === $signatures) {
             return null;
@@ -81,8 +81,8 @@ class SignatureExtractor
 
         $resolver = new OptionsResolver();
         $this->configureSignatureOptions($resolver);
-
         foreach ($signatures as &$signature) {
+
             $signature = $resolver->resolve($signature);
         }
 
@@ -91,12 +91,22 @@ class SignatureExtractor
 
     private function configureSignatureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setRequired(['page', 'x_position', 'y_position']);
+        # TODO Mettre au propre les resolver !!
+        //$resolver->setRequired(['page', 'x_position', 'y_position']);
+        $resolver->setDefined('anchor_string');
+        $resolver->setDefined('x_offset');
+        $resolver->setDefined('y_offset');
 
-        $resolver->setDefault('page', 1);
+        //$resolver->setDefault('page', 1);
 
-        $resolver->setAllowedTypes('page', 'int');
-        $resolver->setAllowedTypes('x_position', 'int');
-        $resolver->setAllowedTypes('y_position', 'int');
+//        $resolver->setAllowedTypes('page', 'int');
+//        if($resolver->isDefined('x_position')){
+//            $resolver->setAllowedTypes('x_position', 'int');
+//        }
+//        if($resolver->isDefined('y_position')){
+//            $resolver->setAllowedTypes('y_position', 'int');
+//        }
+//
+//        $resolver->setAllowedTypes('anchor_string', 'string');
     }
 }

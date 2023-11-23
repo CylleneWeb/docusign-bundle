@@ -39,8 +39,8 @@ final class Webhook
             throw new AccessDeniedHttpException();
         }
 
-        $data = simplexml_load_string($request->getContent());
 
+        $data = simplexml_load_string($request->getContent());
         $status = $data->EnvelopeStatus->Status->__toString();
         $logger->info('DocuSign Webhook called.', ['status' => $status]);
 
