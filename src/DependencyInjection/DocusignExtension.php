@@ -14,6 +14,8 @@ declare(strict_types=1);
 namespace DocusignBundle\DependencyInjection;
 
 use DocusignBundle\Adapter\AdapterDefinitionFactory;
+use DocusignBundle\ClickwrapCreator\ClickwrapRequester;
+use DocusignBundle\ClickwrapCreator\ClickwrapRequesterInterface;
 use DocusignBundle\Controller\AuthorizationCode;
 use DocusignBundle\Controller\Callback;
 use DocusignBundle\Controller\Consent;
@@ -85,16 +87,17 @@ final class DocusignExtension extends Extension
             ->addTag('twig.extension');
 
         $default = null;
-
         foreach ($config as $name => $value) {
             // Clickwrap mode
             if (EnvelopeBuilder::MODE_CLICKWRAP === $value['mode']) {
                 $clickwrapExtensionDefinition->addMethodCall('addConfig', [$name, $value['demo'], [
                     'environment' => pathinfo($value['api_uri'], \PATHINFO_DIRNAME),
+                    'demo' => $value['demo'],
                     'accountId' => $value['auth_clickwrap']['api_account_id'],
                     'clientUserId' => $value['auth_clickwrap']['user_guid'],
                     'clickwrapId' => $value['auth_clickwrap']['clickwrap_id'],
                 ]]);
+
                 continue;
             }
 
@@ -177,6 +180,18 @@ final class DocusignExtension extends Extension
                     '$signatureName' => $name,
                 ])
                 ->addTag('docusign.envelope_creator');
+
+            // clickwrap creator
+            if(!empty($clickwrapExtensionDefinition->getMethodCalls()) && !empty($clickwrapExtensionDefinition->getMethodCalls()[0][1][2])){
+                $container->register("docusign.clickwrap.action", ClickwrapRequester::class)
+                    ->setAutowired(true)
+                    ->setPublic(false)
+                    ->setArguments([
+                        '$apiAccountId' => $clickwrapExtensionDefinition->getMethodCalls()[0][1][2]['accountId'],
+                        '$demo' => $clickwrapExtensionDefinition->getMethodCalls()[0][1][2]['demo'],
+                        '$grant' => new Reference("docusign.grant.$name"),
+                    ]);
+            }
 
             // Filesystem decorator (FlySystem BC)
             $container->register("docusign.filesystem.$name", FilesystemDecorator::class)
@@ -271,6 +286,7 @@ final class DocusignExtension extends Extension
                 $container->setAlias(CreateRecipient::class, new Alias("docusign.create_recipient.$name"));
                 $container->setAlias(EnvelopeCreator::class, new Alias("docusign.envelope_creator.$name"));
                 $container->setAlias(TokenEncoderInterface::class, new Alias("docusign.token_encoder.$name"));
+                $container->setAlias(ClickwrapRequester::class, new Alias("docusign.clickwrap.action"));
 
                 $default = $name;
             }

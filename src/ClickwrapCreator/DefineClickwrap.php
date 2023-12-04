@@ -2,24 +2,32 @@
 
 namespace DocusignBundle\ClickwrapCreator;
 
-use DocuSign\eSign\Model\DocumentHtmlDisplaySettings;
+use DocuSign\Click\Model\DisplaySettings;
 
 class DefineClickwrap
 {
-    public function __invoke(?array $parameters): DocumentHtmlDisplaySettings
+    private DisplaySettings $displaySettings;
+
+    public function __construct(?array $parameters)
     {
-        $displaySettings = new DocumentHtmlDisplaySettings(
+        $displaySettings = new DisplaySettings(
             [
-                'consent_button_text' => isset($parameters['consent_button_text']) ?? 'I aggree',
-                'display_name' => isset($parameters['display_name']) ?? 'Terms of Service',
-                'downloadable' => isset($parameters['downloadable']) && $parameters['downloadable'] === false ?? true,
-                'format' => isset($parameters['format']) ?? 'modal',
-                'has_decline_button' => isset($parameters['has_decline_button']) && $parameters['has_decline_button'] === false ?? true,
-                'must_read' => isset($parameters['has_decline_button']) && $parameters['has_decline_button'] === false ?? true,
-                'require_accept' => isset($parameters['require_accept']) && $parameters['require_accept'] === false ?? true,
-                'document_display' => isset($parameters['document_display']) ?? 'document'
+                'consent_button_text' => $parameters['consent_button_text'] ?? 'I aggree',
+                'display_name' => $parameters['display_name'] ?? 'Terms of Service',
+                'downloadable' => $parameters['downloadable'] ?? true,
+                'format' => $parameters['format'] ?? 'modal',
+                'has_decline_button' => $parameters['has_decline_button'] ?? true,
+                'must_read' => $parameters['has_decline_button'] ?? true,
+                'require_accept' => $parameters['require_accept'] ?? true,
+                'document_display' => $parameters['document_display'] ?? 'document'
             ]
         );
-        return $displaySettings;
+
+        $this->displaySettings = $displaySettings;
     }
+
+   public function getDisplaySettings(): DisplaySettings
+   {
+       return $this->displaySettings;
+   }
 }
