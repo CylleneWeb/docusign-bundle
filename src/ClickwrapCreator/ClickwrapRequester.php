@@ -9,6 +9,7 @@ use DocuSign\Click\Configuration;
 use DocusignBundle\DependencyInjection\DocusignExtension;
 use DocusignBundle\EnvelopeBuilderInterface;
 use DocusignBundle\Grant\GrantInterface;
+use DocusignBundle\Grant\JwtGrant;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -21,7 +22,7 @@ class ClickwrapRequester implements ClickwrapRequesterInterface
     public const DEMO_ACCOUNT_API_URI = 'https://demo.docusign.net/clickapi';
     public const ACCOUNT_API_URI = 'https://docusign.net/clickapi';
 
-    public function __construct(private readonly string $apiAccountId, private readonly bool $demo, private readonly GrantInterface $grant){}
+    public function __construct(private readonly string $apiAccountId, private readonly bool $demo, private readonly JwtGrant $grant){}
 
 
     public function createClickwrap(array $document_info, array $parameters)
@@ -44,7 +45,8 @@ class ClickwrapRequester implements ClickwrapRequesterInterface
         return $this->getAccountApi()->updateClickwrapVersion(
             $this->apiAccountId,
             $clickwrapId,
-            $versionId
+            $versionId,
+            $clickwrap_request
         );
     }
 
@@ -97,10 +99,12 @@ class ClickwrapRequester implements ClickwrapRequesterInterface
 
     private function getAccountApi(): AccountsApi
     {
+        $grant = ($this->grant)();
         $host = $this->demo ? self::DEMO_ACCOUNT_API_URI : self::ACCOUNT_API_URI;
         $config = new Configuration();
         $config->setHost($host);
-        $config->addDefaultHeader('Authorization', 'Bearer '.($this->grant)());
+        $config->addDefaultHeader('Authorization', 'Bearer '.$grant);
+        $config->setAccessToken($grant);
         $apiClient =  new ApiClient($config);
         return new AccountsApi($apiClient);
 

@@ -60,7 +60,6 @@ final class JwtGrant implements GrantInterface
             $response = $this->client->request('POST', $this->accountApiUri, [
                 'body' => sprintf('grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=%s', $this->createToken()),
             ]);
-
             return $response->toArray()['access_token'] ?? '';
         } catch (ExceptionInterface $exception) {
             return '';

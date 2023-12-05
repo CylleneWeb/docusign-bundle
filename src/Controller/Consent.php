@@ -33,7 +33,7 @@ class Consent
     public function __invoke(Request $request): RedirectResponse
     {
         return new RedirectResponse(sprintf(
-            '%s?response_type=code&scope=signature%%20impersonation&client_id=%s&redirect_uri=%s',
+            '%s?response_type=code&scope=signature%%20impersonation%%20click.manage%%20click.send&client_id=%s&redirect_uri=%s',
             $this->consentUri,
             $this->integrationKey,
             $request->getSchemeAndHttpHost()

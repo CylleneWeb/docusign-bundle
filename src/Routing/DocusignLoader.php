@@ -43,7 +43,20 @@ final class DocusignLoader extends Loader
 
         // Load dynamic routes: sign per document
         foreach ($this->config as $name => $config) {
-            if (!\in_array($config['mode'], [EnvelopeBuilder::MODE_EMBEDDED, EnvelopeBuilder::MODE_REMOTE], true)) {
+            if (!\in_array($config['mode'], [EnvelopeBuilder::MODE_EMBEDDED, EnvelopeBuilder::MODE_REMOTE, EnvelopeBuilder::MODE_CLICKWRAP], true)) {
+                continue;
+            }
+
+            if($config['mode'] === EnvelopeBuilder::MODE_CLICKWRAP){
+                if (!empty($config['auth_jwt'])) {
+                    $routeCollection->add(
+                        "docusign_consent_$name",
+                        (new Route("docusign/consent/$name", [
+                            '_controller' => "docusign.consent.$name",
+                            '_docusign_name' => $name,
+                        ]))->setMethods('GET')
+                    );
+                }
                 continue;
             }
 

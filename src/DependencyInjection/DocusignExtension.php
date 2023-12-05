@@ -87,24 +87,63 @@ final class DocusignExtension extends Extension
             ->addTag('twig.extension');
 
         $default = null;
+
         foreach ($config as $name => $value) {
+            $auth = $value['auth_jwt'] ?? $value['auth_code'];
+            $isAuthJwt = \array_key_exists('auth_jwt', $value);
+
             // Clickwrap mode
             if (EnvelopeBuilder::MODE_CLICKWRAP === $value['mode']) {
-                $clickwrapExtensionDefinition->addMethodCall('addConfig', [$name, $value['demo'], [
-                    'environment' => pathinfo($value['api_uri'], \PATHINFO_DIRNAME),
-                    'demo' => $value['demo'],
-                    'accountId' => $value['auth_clickwrap']['api_account_id'],
-                    'clientUserId' => $value['auth_clickwrap']['user_guid'],
-                    'clickwrapId' => $value['auth_clickwrap']['clickwrap_id'],
-                ]]);
+                $clickwrapExtensionDefinition->addMethodCall('addConfig', [
+                    $name,
+                    $value['demo'],
+                    [
+                        'environment' => pathinfo($value['api_uri'], \PATHINFO_DIRNAME),
+                        'demo' => $value['demo'],
+                        'accountId' => $value['auth_clickwrap']['api_account_id'],
+                        'clientUserId' => $value['auth_clickwrap']['user_guid'],
+                        'clickwrapId' => $value['auth_clickwrap']['clickwrap_id'],
+                    ]
+                ]);
 
+                $container->register("docusign.consent.$name", Consent::class)
+                    ->setPublic(true)
+                    ->setArguments([
+                        '$demo' => $value['demo'],
+                        '$integrationKey' => $auth['integration_key'],
+                    ])->addTag('controller.service_arguments');
+
+                $container->setAlias(Consent::class, new Alias("docusign.consent.$name"));
+
+                $container->register("docusign.grant.$name", JwtGrant::class)
+                    ->setAutowired(true)
+                    ->setPublic(false)
+                    ->setArguments([
+                        '$privateKey' => $auth['private_key'],
+                        '$integrationKey' => $auth['integration_key'],
+                        '$userGuid' => $auth['user_guid'],
+                        '$demo' => $value['demo'],
+                        '$ttl' => $auth['ttl'],
+                    ]);
+
+                $container->setAlias(JwtGrant::class, new Alias("docusign.grant.$name"));
+
+                // clickwrap creator
+                if(!empty($clickwrapExtensionDefinition->getMethodCalls()) && !empty($clickwrapExtensionDefinition->getMethodCalls()[0][1][2])){
+                    $container->register("docusign.clickwrap.action", ClickwrapRequester::class)
+                        ->setAutowired(true)
+                        ->setPublic(false)
+                        ->setArguments([
+                            '$apiAccountId' => $clickwrapExtensionDefinition->getMethodCalls()[0][1][2]['accountId'],
+                            '$demo' => $clickwrapExtensionDefinition->getMethodCalls()[0][1][2]['demo'],
+                            '$grant' => new Reference("docusign.grant.$name"),
+                        ]);
+                    $container->setAlias(ClickwrapRequester::class, new Alias("docusign.clickwrap.action"));
+                }
                 continue;
             }
 
             // Embedded/Remote mode
-
-            $auth = $value['auth_jwt'] ?? $value['auth_code'];
-            $isAuthJwt = \array_key_exists('auth_jwt', $value);
 
             if (empty($value['callback'])) {
                 $value['callback'] = "docusign_callback_$name";
@@ -180,18 +219,6 @@ final class DocusignExtension extends Extension
                     '$signatureName' => $name,
                 ])
                 ->addTag('docusign.envelope_creator');
-
-            // clickwrap creator
-            if(!empty($clickwrapExtensionDefinition->getMethodCalls()) && !empty($clickwrapExtensionDefinition->getMethodCalls()[0][1][2])){
-                $container->register("docusign.clickwrap.action", ClickwrapRequester::class)
-                    ->setAutowired(true)
-                    ->setPublic(false)
-                    ->setArguments([
-                        '$apiAccountId' => $clickwrapExtensionDefinition->getMethodCalls()[0][1][2]['accountId'],
-                        '$demo' => $clickwrapExtensionDefinition->getMethodCalls()[0][1][2]['demo'],
-                        '$grant' => new Reference("docusign.grant.$name"),
-                    ]);
-            }
 
             // Filesystem decorator (FlySystem BC)
             $container->register("docusign.filesystem.$name", FilesystemDecorator::class)
@@ -286,7 +313,7 @@ final class DocusignExtension extends Extension
                 $container->setAlias(CreateRecipient::class, new Alias("docusign.create_recipient.$name"));
                 $container->setAlias(EnvelopeCreator::class, new Alias("docusign.envelope_creator.$name"));
                 $container->setAlias(TokenEncoderInterface::class, new Alias("docusign.token_encoder.$name"));
-                $container->setAlias(ClickwrapRequester::class, new Alias("docusign.clickwrap.action"));
+
 
                 $default = $name;
             }
