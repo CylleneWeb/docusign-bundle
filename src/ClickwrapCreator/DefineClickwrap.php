@@ -12,12 +12,12 @@ class DefineClickwrap
     {
         $displaySettings = new DisplaySettings(
             [
-                'consent_button_text' => $parameters['consent_button_text'] ?? 'I aggree',
-                'display_name' => $parameters['display_name'] ?? 'Terms of Service',
+                'consent_button_text' => $parameters['consent_button_text'] ?? 'J\'accepte',
+                'display_name' => $parameters['display_name'] ?? 'Document à signer',
                 'downloadable' => $parameters['downloadable'] ?? true,
                 'format' => $parameters['format'] ?? 'modal',
                 'has_decline_button' => $parameters['has_decline_button'] ?? true,
-                'must_read' => $parameters['has_decline_button'] ?? true,
+                'must_read' => $parameters['must_read'] ?? true,
                 'require_accept' => $parameters['require_accept'] ?? true,
                 'document_display' => $parameters['document_display'] ?? 'document'
             ]

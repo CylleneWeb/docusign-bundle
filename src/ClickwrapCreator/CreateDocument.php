@@ -2,7 +2,7 @@
 
 namespace DocusignBundle\ClickwrapCreator;
 
-use DocuSign\eSign\Model\Document;
+use DocuSign\Click\Model\Document;
 
 class CreateDocument
 {
@@ -16,7 +16,7 @@ class CreateDocument
 
         $document = new Document([
             'document_base64' => $base64_file_content,
-            'name' => $parameter['document_name'] ?? basename($pathDocument[0]),
+            'document_name' => $parameter['document_name'] ?? basename($pathDocument[0]),
             'file_extension' => end($pathDocument),
             'order' => $parameter['order'] ?? '1'
         ]);

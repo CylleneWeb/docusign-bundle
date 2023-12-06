@@ -6,6 +6,8 @@ use DocuSign\Click\Api\AccountsApi;
 use DocuSign\Click\Client\ApiClient;
 use DocuSign\Click\Model\ClickwrapRequest;
 use DocuSign\Click\Configuration;
+use DocuSign\Click\Model\DocumentData;
+use DocuSign\Click\Model\UserAgreementRequest;
 use DocusignBundle\DependencyInjection\DocusignExtension;
 use DocusignBundle\EnvelopeBuilderInterface;
 use DocusignBundle\Grant\GrantInterface;
@@ -30,16 +32,88 @@ class ClickwrapRequester implements ClickwrapRequesterInterface
         $clickwrap = new ClickwrapRequest([
             'clickwrap_name' => $document_info['name'],
             'display_settings' => $this->handleClickwrapSetting($parameters),
-            'documents' => $this->handleCreateDocument($document_info['path'],$parameters),
+            'documents' => [$this->handleCreateDocument($document_info['path'],$parameters)],
+            'require_reacceptance' => true,
+        ]);
+
+        // envoyer le clickwrap et retourner la reponse
+        $response = $this->getAccountApi()->createClickwrap($this->apiAccountId, $clickwrap);
+        return $this->activateClickwrap($response["clickwrap_id"], $response["version_id"]);
+    }
+
+    public function updateClickwrap(string $clickwrapId, array $document_info, array $parameters)
+    {
+        $clickwrap = new ClickwrapRequest([
+            'clickwrap_name' => $document_info['name'],
+            'display_settings' => $this->handleClickwrapSetting($parameters),
+            'documents' => [$this->handleCreateDocument($document_info['path'],$parameters)],
             'require_reacceptance' => true
         ]);
 
         // envoyer le clickwrap et retourner la reponse
-        return $this->getAccountApi()->createClickwrap($this->apiAccountId, $clickwrap);
-
+        $response = $this->getAccountApi()->createClickwrapVersion($this->apiAccountId,$clickwrapId,$clickwrap);
+        return $this->activateClickwrap($response["clickwrap_id"], $response["version_id"]);
     }
 
-    public function activateClickwrap($clickwrapId, string $versionId)
+    public function deleteClickwrap(string $clickwrapId)
+    {
+        $this->getAccountApi()->updateClickwrap($this->apiAccountId, $clickwrapId, ['status' => 'inactive']);
+        return $this->getAccountApi()->deleteClickwrap($this->apiAccountId, $clickwrapId);
+    }
+
+    public function signClickwrap(array $params)
+    {
+        if($this->checkParamForSignClickwrap($params)['error'] === true){
+            throw new \Exception($this->checkParamForSignClickwrap($params)['message'], 500);
+        }
+
+        $documentData = new UserAgreementRequest();
+        $documentData->setClientUserId($params["email"]);
+        $rawData = [
+          'fullName' => $params["fullname"],
+          'email' => $params["email"],
+          'company' => $params["company"] ?? "company",
+          'title' => $params["title"] ?? "title",
+          'date' => (new \DateTimeImmutable())->format('Y-m-d')
+        ];
+        $documentData->setDocumentData($rawData);
+        $response = $this->getAccountApi()->createHasAgreed($this->apiAccountId, $params['clickwrapId'], $documentData);
+        if($response->getStatus() === "created"){
+            return $response->getAgreementUrl();
+        } else {
+            return null;
+        }
+    }
+
+    private function checkParamForSignClickwrap(array $params): array
+    {
+        if(!empty($params))
+        {
+            if(!isset($params['email'])){
+                return $this->formatError(true,"email");
+            }
+            elseif (!isset($params['fullname'])){
+                return $this->formatError(true,"fullname");
+            }
+            elseif (!isset($params['clickwrapId'])){
+                return $this->formatError(true,"clickwrapId");
+            }
+            else
+            {
+                return $this->formatError(false);
+            }
+        }
+        return ["error" => true, "message" => "The parameter array is empty, 'email' and 'fullname' parameters are mandatory."];
+    }
+
+    private function formatError(bool $error, ?string $message = null): array
+    {
+        $response = [];
+        $error ? $response = ['error' => $error, 'message' => sprintf("The '%s' parameter is missing.", $message)] : $response = ['error' => $error, 'message' => sprintf("ok", $message)];
+        return $response ;
+    }
+
+    private function activateClickwrap($clickwrapId, string $versionId)
     {
         $clickwrap_request = new ClickwrapRequest(['status' => 'active']);
         return $this->getAccountApi()->updateClickwrapVersion(
@@ -48,25 +122,6 @@ class ClickwrapRequester implements ClickwrapRequesterInterface
             $versionId,
             $clickwrap_request
         );
-    }
-
-    public function updateClickwrap(string $clickwrapId, array $document_info, array $parameters)
-    {
-        $clickwrap = new ClickwrapRequest([
-            'clickwrap_name' => $document_info['name'],
-            'display_settings' => $this->handleClickwrapSetting($parameters),
-            'documents' => $this->handleCreateDocument($document_info['path'],$parameters),
-            'require_reacceptance' => true
-        ]);
-
-        // envoyer le clickwrap et retourner la reponse
-        return $this->getAccountApi()->createClickwrapVersion($this->apiAccountId,$clickwrapId,$clickwrap);
-    }
-
-    public function deleteClickwrap(string $clickwrapId)
-    {
-        $this->getAccountApi()->updateClickwrap($this->apiAccountId, $clickwrapId, ['status' => 'inactive']);
-        return $this->getAccountApi()->deleteClickwrap($this->apiAccountId, $clickwrapId);
     }
 
     private function handleClickwrapSetting(array $parameters)
@@ -87,7 +142,7 @@ class ClickwrapRequester implements ClickwrapRequesterInterface
 
     private function handleCreateDocument(?string $path, array $parameters)
     {
-        $requires = ['document_base64','name','file_extension','order'];
+        $requires = ['document_base64','document_name','file_extension','order'];
         $param = [];
         foreach ($parameters as $key => $parameter){
             if(in_array($key, $requires))
