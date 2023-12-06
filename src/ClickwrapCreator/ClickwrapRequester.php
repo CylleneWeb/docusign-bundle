@@ -65,6 +65,7 @@ class ClickwrapRequester implements ClickwrapRequesterInterface
 
     public function deleteClickwrap(string $clickwrapId)
     {
+        $this->getAccountApi()->updateClickwrap($this->apiAccountId, $clickwrapId, ['status' => 'inactive']);
         return $this->getAccountApi()->deleteClickwrap($this->apiAccountId, $clickwrapId);
     }
 

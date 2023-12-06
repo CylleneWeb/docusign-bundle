@@ -44,6 +44,7 @@ This bundle is coupled with [FlySystem](https://flysystem.thephpleague.com) and 
     1.  [Installation](doc/use-flysystem-bundle.md#installation)
     1.  [Configure the storage](doc/use-flysystem-bundle.md#configure-the-storage)
     1.  [Configure the signature](doc/use-flysystem-bundle.md#configure-the-signature)
+1.  [Cyllene/adaptations](doc/cyllene-adaptation.md) 
 
 ## Code of conduct
 
