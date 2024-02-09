@@ -50,9 +50,15 @@ final class CreateSignature implements EnvelopeBuilderCallableInterface
                 $this->envelopeBuilder->addAnchorSignatureZone($signature['anchor_string'], $signature, $isNotMandatory);
             }
             else {
-                $this->envelopeBuilder->addSignatureZone($signature['page'], $signature['x_position'], $signature['y_position']);
-            }
+                if(isset($signature['page']) && $signature['page'] === 0){
+                    unset($signatures[0]);
+                }
+                else
+                {
+                    $this->envelopeBuilder->addSignatureZone($signature['page'], $signature['x_position'], $signature['y_position']);
+                }
 
+            }
         }
     }
 }
