@@ -38,7 +38,11 @@ class ClickwrapRequester implements ClickwrapRequesterInterface
 
         // envoyer le clickwrap et retourner la reponse
         $response = $this->getAccountApi()->createClickwrap($this->apiAccountId, $clickwrap);
-        return $this->activateClickwrap($response["clickwrap_id"], $response["version_id"]);
+        $this->activateClickwrap($response["clickwrap_id"], $response["version_id"]);
+        return [
+            "clickwrap_id" => $response["clickwrap_id"],
+            "version_id" => $response["version_id"]
+        ];
     }
 
     public function updateClickwrap(string $clickwrapId, array $document_info, array $parameters)
@@ -52,7 +56,11 @@ class ClickwrapRequester implements ClickwrapRequesterInterface
 
         // envoyer le clickwrap et retourner la reponse
         $response = $this->getAccountApi()->createClickwrapVersion($this->apiAccountId,$clickwrapId,$clickwrap);
-        return $this->activateClickwrap($response["clickwrap_id"], $response["version_id"]);
+        $this->activateClickwrap($response["clickwrap_id"], $response["version_id"]);
+        return [
+            "clickwrap_id" => $response["clickwrap_id"],
+            "version_id" => $response["version_id"]
+        ];
     }
 
     public function deleteClickwrap(string $clickwrapId)
