@@ -4,6 +4,7 @@ namespace DocusignBundle\ClickwrapCreator;
 
 use DocuSign\Click\Api\AccountsApi;
 use DocuSign\Click\Client\ApiClient;
+use DocuSign\Click\Client\ApiException;
 use DocuSign\Click\Model\ClickwrapRequest;
 use DocuSign\Click\Configuration;
 use DocuSign\Click\Model\DocumentData;
@@ -77,6 +78,11 @@ class ClickwrapRequester implements ClickwrapRequesterInterface
 
         $documentData = new UserAgreementRequest();
         $documentData->setClientUserId($params["email"]);
+
+        if(isset($params["returnUrl"])){
+            $documentData->setReturnUrl($params["returnUrl"]);
+        }
+
         $rawData = [
           'fullName' => $params["fullname"],
           'email' => $params["email"],
@@ -91,6 +97,68 @@ class ClickwrapRequester implements ClickwrapRequesterInterface
         } else {
             return null;
         }
+    }
+
+    public function getClickwrapAgreement(string $agreementId, string $clickwrapId)
+    {
+
+        return $this->getAgreementPdfWithHttpInfo(
+            $this->apiAccountId,
+            $agreementId,
+            $clickwrapId
+        );
+    }
+
+    private function getAgreementPdfWithHttpInfo($account_id, $agreement_id, $clickwrap_id)
+    {
+        // verify the required parameter 'account_id' is set
+        if ($account_id === null) {
+            throw new \InvalidArgumentException('Missing the required parameter $account_id when calling getAgreementPdf');
+        }
+        // verify the required parameter 'agreement_id' is set
+        if ($agreement_id === null) {
+            throw new \InvalidArgumentException('Missing the required parameter $agreement_id when calling getAgreementPdf');
+        }
+        // verify the required parameter 'clickwrap_id' is set
+        if ($clickwrap_id === null) {
+            throw new \InvalidArgumentException('Missing the required parameter $clickwrap_id when calling getAgreementPdf');
+        }
+
+        // parse inputs
+        $resourcePath = sprintf("/v1/accounts/%s/clickwraps/%s/agreements/%s/download?include_coc=true", $account_id,$clickwrap_id, $agreement_id );
+        $httpBody = $_tempBody ?? ''; // $_tempBody is the method argument, if present
+        $queryParams = $headerParams = $formParams = [];
+        $headerParams['Accept'] ??= $this->getAccountApi()->getApiClient()->selectHeaderAccept(['application/pdf']);
+        $headerParams['Content-Type'] = $this->getAccountApi()->getApiClient()->selectHeaderContentType([]);
+
+
+        try {
+            list($response, $statusCode, $httpHeader) = $this->getAccountApi()->getApiClient()->callApi(
+                $resourcePath,
+                'GET',
+                $queryParams,
+                $httpBody,
+                $headerParams,
+                '\SplFileObject',
+                '/v1/accounts/{accountId}/clickwraps/{clickwrapId}/agreements/{agreementId}/download?include_coc=true'
+            );
+
+            return [$this->getAccountApi()->getApiClient()->getSerializer()->deserialize($response, '\SplFileObject', $httpHeader), $statusCode, $httpHeader];
+        }catch (ApiException $e) {
+            switch ($e->getCode()) {
+                case 200:
+                    $data = $this->getAccountApi()->getApiClient()->getSerializer()->deserialize($e->getResponseBody(), '\SplFileObject', $e->getResponseHeaders());
+                    $e->setResponseObject($data);
+                    break;
+                case 400:
+                    $data = $this->getAccountApi()->getApiClient()->getSerializer()->deserialize($e->getResponseBody(), '\DocuSign\Click\Model\ErrorDetails', $e->getResponseHeaders());
+                    $e->setResponseObject($data);
+                    break;
+            }
+
+            throw $e;
+        }
+
     }
 
     private function checkParamForSignClickwrap(array $params): array
@@ -174,3 +242,4 @@ class ClickwrapRequester implements ClickwrapRequesterInterface
 
     }
 }
+

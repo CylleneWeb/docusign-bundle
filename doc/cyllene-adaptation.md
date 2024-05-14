@@ -112,6 +112,7 @@ auth_clickwrap:
         "clickwrapId" => "Here a clickwrap id", // mandatory
         'company' => "Your company", // optional
         'title' => "Your title", // optional
+        "returnUrl" => "redirection url after signing", // optional
     ];
      $response = $clickwrapRequester->signClickwrap($params);
      if(null !== $response){
@@ -119,5 +120,32 @@ auth_clickwrap:
         //You will need to redirect to this URL to continue the signing process on DocuSign.
      }
     ```
+
+  5. Get a certificate of completion
+
+  ```php
+  // src/Service/AnyService.php
+     
+  $response = $this->clickwrapRequester->getClickwrapAgreement(
+            (string) $agreementId,
+            (string) $clickwrapId
+  );
+  try {
+     $fileContent = '';
+     while (!$fileObject->eof()) {
+        $fileContent .= $fileObject->fgets();
+     }
+
+     // Create response to view PDF
+     $fileResponse = new Response($fileContent);
+     $fileResponse->headers->set('Content-Type', 'application/pdf');
+     $fileResponse->headers->set('Content-Disposition', 'inline; filename="document.pdf"');
+     return $fileResponse;
+  }
+  catch(Exception $e){
+    throw new \RuntimeException("Error while retrieving the agreement : ".$e);
+  }
+  ```
   
   
+
