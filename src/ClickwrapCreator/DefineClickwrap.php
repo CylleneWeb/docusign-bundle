@@ -19,7 +19,8 @@ class DefineClickwrap
                 'has_decline_button' => $parameters['has_decline_button'] ?? true,
                 'must_read' => $parameters['must_read'] ?? true,
                 'require_accept' => $parameters['require_accept'] ?? true,
-                'document_display' => $parameters['document_display'] ?? 'document'
+                'document_display' => $parameters['document_display'] ?? 'document',
+                'record_decline_responses' => $parameters['record_decline_responses'] ?? true,
             ]
         );
 

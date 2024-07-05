@@ -203,7 +203,7 @@ class ClickwrapRequester implements ClickwrapRequesterInterface
     private function handleClickwrapSetting(array $parameters)
     {
         $requires = ['consent_button_text','display_name','downloadable','format',
-        'has_decline_button','must_read','require_accept','document_display'];
+            'has_decline_button','must_read','require_accept','document_display','record_decline_responses'];
 
         $param = [];
 
