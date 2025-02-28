@@ -148,6 +148,12 @@ final class EnvelopeBuilder implements EnvelopeBuilderInterface
         return $this;
     }
 
+    public function addFlyingSignatureZone(): self
+    {
+        $this->signatureZones[] = new Model\SignHere([]);
+        return $this;
+    }
+
     public function addAnchorSignatureZone(string $anchorString, array $offsets = [], ?bool $isNotMandatory = false, ?int $recipientId = null): self
     {
         $this->signatureZones[] = new Model\SignHere([

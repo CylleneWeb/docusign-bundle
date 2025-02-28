@@ -43,15 +43,29 @@ use Symfony\Component\Routing\RouterInterface;
             return CallbackRouteGenerator::getCallbackRoute($this->router, $this->envelopeBuilder);
         }
 
+        $returnUrl = CallbackRouteGenerator::getCallbackRoute($this->router, $this->envelopeBuilder).$this->addObjectId();
+
         $recipientViewRequest = new Model\RecipientViewRequest([
             'authentication_method' => EnvelopeBuilder::EMBEDDED_AUTHENTICATION_METHOD,
             'client_user_id' => $this->envelopeBuilder->getAccountId(),
             'recipient_id' => '1',
-            'return_url' => CallbackRouteGenerator::getCallbackRoute($this->router, $this->envelopeBuilder),
+            'return_url' => $returnUrl,
             'user_name' => $this->envelopeBuilder->getSignerName(),
             'email' => $this->envelopeBuilder->getSignerEmail(),
         ]);
 
         return $this->envelopeBuilder->getViewUrl($recipientViewRequest);
+    }
+
+    private function addObjectId(): string
+    {
+        if(isset($this->envelopeBuilder?->getEnvelopeDefinition()?->getCustomFields()["text_custom_fields"])){
+            foreach ($this->envelopeBuilder->getEnvelopeDefinition()->getCustomFields()["text_custom_fields"] as $customField){
+                if($customField['name'] === "object_id"){
+                    return '&object_id='.$customField['value'];
+                }
+            }
+        }
+        return '';
     }
 }
