@@ -13,11 +13,13 @@ declare(strict_types=1);
 
 namespace DocusignBundle\Controller;
 
+use DocusignBundle\EnvelopeBuilder;
 use DocusignBundle\EnvelopeBuilderInterface;
 use DocusignBundle\Events\PreSignEvent;
 use DocusignBundle\Exception\FileNotFoundException;
 use DocusignBundle\Exception\MissingMandatoryParameterHttpException;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -54,6 +56,10 @@ final class Sign
             }
 
             $this->envelopeBuilder->setFile($path);
+
+            if (EnvelopeBuilder::MODE_EMBEDDED === $this->envelopeBuilder->getMode()) {
+                return new JsonResponse($this->envelopeBuilder->createEnvelope());
+            }
 
             return new RedirectResponse($this->envelopeBuilder->createEnvelope(), 307);
         } catch (FileNotFoundException $exception) {
