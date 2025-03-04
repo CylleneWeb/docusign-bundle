@@ -19,6 +19,7 @@ use DocusignBundle\ClickwrapCreator\ClickwrapRequesterInterface;
 use DocusignBundle\Controller\AuthorizationCode;
 use DocusignBundle\Controller\Callback;
 use DocusignBundle\Controller\Consent;
+use DocusignBundle\RecovererDocument;
 use DocusignBundle\Controller\Sign;
 use DocusignBundle\Controller\Webhook;
 use DocusignBundle\EnvelopeBuilder;
@@ -245,6 +246,20 @@ final class DocusignExtension extends Extension
                     '$name' => $name,
                 ]);
 
+            // Recoverer Document
+            $container->register("docusign.recoverer.document.$name", RecovererDocument::class)
+                ->setAutowired(true)
+                ->setPublic(true)
+                ->setArguments([
+                    '$apiAccountId' => $value['account_id'],
+                    '$demo' => $value['demo'] ?? true,
+                    '$grant' => new Reference("docusign.grant.$name"),
+                ])->addTag('controller.service_arguments');
+            if(null === $default){
+                $container->setAlias(RecovererDocument::class, new Alias("docusign.recoverer.document.$name"));
+            }
+
+
             // Signature extractor
             $container->register("docusign.signature_extractor.$name", SignatureExtractor::class)
                 ->setAutowired(true)
@@ -313,7 +328,6 @@ final class DocusignExtension extends Extension
                 $container->setAlias(CreateRecipient::class, new Alias("docusign.create_recipient.$name"));
                 $container->setAlias(EnvelopeCreator::class, new Alias("docusign.envelope_creator.$name"));
                 $container->setAlias(TokenEncoderInterface::class, new Alias("docusign.token_encoder.$name"));
-
 
                 $default = $name;
             }
