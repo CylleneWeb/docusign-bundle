@@ -59,7 +59,7 @@ final class EnvelopeCreator implements EnvelopeCreatorInterface
             return $result;
         } catch (ApiException $exception) {
             $this->logger->critical('Unable to send a document to DocuSign.', [
-                'document' => $envelopeBuilder->getDocument(),
+                'document' => $envelopeBuilder->getDocuments(),
                 'signers' => $envelopeBuilder->getSigners(),
                 'envelope' => $envelopeBuilder->getEnvelopeDefinition(),
                 'request' => $exception->getResponseBody(),
@@ -73,7 +73,7 @@ final class EnvelopeCreator implements EnvelopeCreatorInterface
 
     private function validate(EnvelopeBuilderInterface $envelopeBuilder): void
     {
-        Assert::notNull($envelopeBuilder->getFilePath());
+        Assert::notNull($envelopeBuilder->getFilePaths());
         Assert::notEmpty($envelopeBuilder->getDocReference());
     }
 }

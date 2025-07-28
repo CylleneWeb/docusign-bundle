@@ -37,8 +37,8 @@ final class Sign
 
     public function __invoke(Request $request, EventDispatcherInterface $eventDispatcher, LoggerInterface $logger): Response
     {
-        if (empty($path = $request->query->get('path'))) {
-            throw new MissingMandatoryParameterHttpException('You must define a `path` query parameter.');
+        if (empty($paths = $request->query->all('paths')) && !is_array($paths)) {
+            throw new MissingMandatoryParameterHttpException('You must define a `paths` query parameter.');
         }
 
         if (!empty($signerName = $request->query->get('signerName'))) {
@@ -54,13 +54,11 @@ final class Sign
             if (null !== $response = $preSignEvent->getResponse()) {
                 return $response;
             }
-
-            $this->envelopeBuilder->setFile($path);
+            $this->envelopeBuilder->setFiles($paths);
 
             if (EnvelopeBuilder::MODE_EMBEDDED === $this->envelopeBuilder->getMode()) {
                 return new JsonResponse($this->envelopeBuilder->createEnvelope());
             }
-
             return new RedirectResponse($this->envelopeBuilder->createEnvelope(), 307);
         } catch (FileNotFoundException $exception) {
             $logger->error('Document to sign not found.', ['message' => $exception->getMessage()]);

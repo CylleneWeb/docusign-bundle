@@ -3,6 +3,7 @@
 namespace DocusignBundle;
 
 use DocuSign\eSign\Api\AccountsApi;
+use DocuSign\eSign\Api\EnvelopesApi;
 use DocuSign\eSign\Client\ApiClient;
 use DocuSign\eSign\Configuration;
 use DocusignBundle\EnvelopeBuilderInterface;
@@ -37,6 +38,7 @@ final class RecovererDocument
             $url = "/v2.1/accounts/{$this->apiAccountId}/envelopes/{$params['envelopeId']}/documents/1";
             $this->setParams($params);
             $apiClient = $this->getAccountApi()->getApiClient();
+
             try {
                 list($response, $statusCode, $httpHeader) = $apiClient->callApi(
                     $url,
@@ -58,7 +60,20 @@ final class RecovererDocument
             }
 
         }
+    }
 
+    public function isSignHereTabs(array $params): bool
+    {
+        if(isset($params['envelopeId'], $params['recipientId'])){
+            $apiClient = $this->getAccountApi()->getApiClient();
+            $envelopeApi = new EnvelopesApi($apiClient);
+            $tabs = $envelopeApi->listTabs(
+                $this->apiAccountId,
+                $params['envelopeId'],
+                $params['recipientId']
+            );
+            return !is_null($tabs->getSignHereTabs());
+        }
     }
 
     private function setParams(array $params) :void

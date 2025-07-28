@@ -46,7 +46,7 @@ final class DefineEnvelope implements EnvelopeBuilderCallableInterface, Translat
 
         $this->envelopeBuilder->setEnvelopeDefinition(new Model\EnvelopeDefinition([
             'email_subject' => $this->getTranslator()->trans(self::EMAIL_SUBJECT, [], DocusignBundle::TRANSLATION_DOMAIN),
-            'documents' => [$this->envelopeBuilder->getDocument()],
+            'documents' => $this->envelopeBuilder->getDocuments(),
             'recipients' => new Model\Recipients(['signers' => $this->envelopeBuilder->getSigners(), 'carbon_copies' => $this->envelopeBuilder->getCarbonCopies() ?? null]),
             'status' => 'sent',
             'event_notification' => $this->getEventsNotifications(),

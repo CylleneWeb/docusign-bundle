@@ -19,7 +19,7 @@ use DocusignBundle\Filesystem\FilesystemInterface;
 
 interface EnvelopeBuilderInterface
 {
-    public function setFile(string $filePath);
+    public function setFiles(array $filePaths);
 
     public function getName(): string;
 
@@ -55,18 +55,19 @@ interface EnvelopeBuilderInterface
 
     public function getApiUri(): string;
 
-    public function getDocument(): ?Model\Document;
+    public function getDocuments(): ?array;
 
     public function getSigners(): array;
 
-    public function getFilePath(): ?string;
+    public function getFilePaths(): ?array;
+
 
     public function getFileSystem(): FilesystemInterface;
 
     /**
      * @return false|string
      */
-    public function getFileContent();
+    public function getFileContent(string $path);
 
     public function getViewUrl(Model\RecipientViewRequest $recipientViewRequest): string;
 
@@ -88,7 +89,7 @@ interface EnvelopeBuilderInterface
 
     public function getEnvelopeId(): ?string;
 
-    public function setDocument(?Model\Document $document): void;
+    public function addDocument(?Model\Document $document): void;
 
     public function getCarbonCopies();
 

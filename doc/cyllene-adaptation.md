@@ -11,6 +11,26 @@ $envelopeBuilder->addAnchorSignatureZone(
     ?int $recipientId = null
 )
 ```
+- Possibility of adding multiple documents for signature when calling the route to sign.
+```php
+// src/Controller/MyController.php
+return $this->redirectToRoute(
+    'docusign_sign_name',
+    [
+        'paths' => [$filename,$filename2],
+        'urls' => [
+            $this->docusignUploadTmpDirectory.'/'.$filename,
+            $this->docusignUploadTmpDirectory.'/'.$filename2
+        ],
+        'customIds' => [
+            "custom1" => "custom data",
+            "custom2" => $id // for callback
+        ],
+        'signerName' => "John doe",
+        'signerEmail' => "email@example.com",
+    ],
+);
+```
 
 ## click
 - The bundle also allows for creating, modifying, and deleting clickwrap signatures.

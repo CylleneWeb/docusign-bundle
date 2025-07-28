@@ -37,13 +37,15 @@ final class EnvelopeBuilder implements EnvelopeBuilderInterface
     /** @var string */
     private $apiUri;
     /** @var string|null */
-    private $filePath;
+    private $filePaths;
+
     /** @var int */
     private $docReference;
     /** @var FilesystemInterface */
     private $fileSystem;
-    /** @var Model\Document|null */
-    private $document;
+    /** @var null|array */
+    private $documents;
+
     /** @var Model\EnvelopeDefinition|null */
     private $envelopeDefinition;
     /** @var EnvelopesApi|null */
@@ -103,9 +105,9 @@ final class EnvelopeBuilder implements EnvelopeBuilderInterface
         $this->docReference = time();
     }
 
-    public function setFile(string $filePath): self
+    public function setFiles(array $filePaths): self
     {
-        $this->filePath = $filePath;
+        $this->filePaths = $filePaths;
 
         return $this;
     }
@@ -241,9 +243,9 @@ final class EnvelopeBuilder implements EnvelopeBuilderInterface
     public function reset(): void
     {
         $this->docReference = time(); // Will stop working after the 19/01/2038 at 03:14:07. (high five If you guess why)
-        $this->filePath = null;
+        $this->filePaths = null;
         $this->signatureZones = [];
-        $this->document = null;
+        $this->documents = null;
         $this->signers = [];
         $this->carbonCopies = [];
         $this->envelopeDefinition = null;
@@ -272,9 +274,9 @@ final class EnvelopeBuilder implements EnvelopeBuilderInterface
         return $this->apiUri;
     }
 
-    public function getDocument(): ?Model\Document
+    public function getDocuments(): ?array
     {
-        return $this->document;
+        return $this->documents;
     }
 
     /**
@@ -285,9 +287,9 @@ final class EnvelopeBuilder implements EnvelopeBuilderInterface
         return $this->signers;
     }
 
-    public function getFilePath(): ?string
+    public function getFilePaths(): ?array
     {
-        return $this->filePath;
+        return $this->filePaths;
     }
 
     public function getFileSystem(): FilesystemInterface
@@ -298,9 +300,9 @@ final class EnvelopeBuilder implements EnvelopeBuilderInterface
     /**
      * @return false|string
      */
-    public function getFileContent()
+    public function getFileContent(string $path)
     {
-        return $this->getFileSystem()->read($this->getFilePath());
+        return $this->getFileSystem()->read($path);
     }
 
     public function getViewUrl(Model\RecipientViewRequest $recipientViewRequest): string
@@ -353,9 +355,9 @@ final class EnvelopeBuilder implements EnvelopeBuilderInterface
         return $this->envelopeId;
     }
 
-    public function setDocument(?Model\Document $document): void
+    public function addDocument(?Model\Document $document): void
     {
-        $this->document = $document;
+        $this->documents[] = $document;
     }
 
     /**

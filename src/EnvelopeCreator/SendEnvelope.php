@@ -45,13 +45,15 @@ final class SendEnvelope implements EnvelopeBuilderCallableInterface
         if ($context['signature_name'] !== $this->envelopeBuilder->getName()) {
             return;
         }
-
         $this->envelopeBuilder->setEnvelopesApi($this->setUpConfiguration());
 
         $this->eventDispatcher->dispatch($preSendEnvelopeEvent = new PreSendEnvelopeEvent($this->envelopeBuilder));
         $this->envelopeBuilder = $preSendEnvelopeEvent->getEnvelopeBuilder();
-
-        $this->envelopeBuilder->setEnvelopeId($this->envelopeBuilder->getEnvelopesApi()->createEnvelope((string) $this->envelopeBuilder->getAccountId(), $this->envelopeBuilder->getEnvelopeDefinition())->getEnvelopeId());
+        $this->envelopeBuilder->setEnvelopeId($this->envelopeBuilder->getEnvelopesApi()->createEnvelope(
+            (string) $this->envelopeBuilder->getAccountId(),
+            $this->envelopeBuilder->getEnvelopeDefinition())
+            ->getEnvelopeId()
+        );
     }
 
     private function setUpConfiguration(): EnvelopesApi

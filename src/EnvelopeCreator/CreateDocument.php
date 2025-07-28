@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace DocusignBundle\EnvelopeCreator;
 
 use DocuSign\eSign\Model;
+use DocusignBundle\EnvelopeBuilder;
 use DocusignBundle\EnvelopeBuilderInterface;
 use DocusignBundle\Exception\FileNotFoundException;
 
@@ -32,20 +33,21 @@ final class CreateDocument implements EnvelopeBuilderCallableInterface
             return;
         }
 
-        if (false === $contentBytes = $this->envelopeBuilder->getFileContent()) {
-            throw new FileNotFoundException($this->envelopeBuilder->getFilePath() ?? 'null');
+        foreach ($this->envelopeBuilder->getFilePaths() as $key => $filePath){
+            if (false === $contentBytes = $this->envelopeBuilder->getFileContent($filePath)) {
+                throw new FileNotFoundException($filePath ?? 'null');
+            }
+
+            $base64FileContent = base64_encode($contentBytes);
+            ['extension' => $extension, 'filename' => $filename] = pathinfo($filePath);
+
+            $this->envelopeBuilder->addDocument(new Model\Document([
+                'document_base64' => $base64FileContent,
+                'name' => $filename,
+                'file_extension' => $extension,
+                'document_id' => $this->envelopeBuilder->getDocReference()+(int)$key,
+            ]));
         }
-
-        $base64FileContent = base64_encode($contentBytes);
-        ['extension' => $extension, 'filename' => $filename] = pathinfo($this->envelopeBuilder->getFilePath());
-
-        $this->envelopeBuilder->setDocument(new Model\Document([
-            'document_base64' => $base64FileContent,
-            'name' => $filename,
-            'file_extension' => $extension,
-            'document_id' => $this->envelopeBuilder->getDocReference(),
-        ]));
-
         $this->envelopeBuilder->setDefaultSigner();
     }
 }
