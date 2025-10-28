@@ -7,6 +7,7 @@ use DocuSign\Click\Client\ApiClient;
 use DocuSign\Click\Client\ApiException;
 use DocuSign\Click\Model\ClickwrapRequest;
 use DocuSign\Click\Configuration;
+use DocuSign\Click\Model\Document;
 use DocuSign\Click\Model\DocumentData;
 use DocuSign\Click\Model\UserAgreementRequest;
 use DocusignBundle\DependencyInjection\DocusignExtension;
@@ -37,6 +38,28 @@ class ClickwrapRequester implements ClickwrapRequesterInterface
             'require_reacceptance' => true,
         ]);
 
+        // envoyer le clickwrap et retourner la reponse
+        $response = $this->getAccountApi()->createClickwrap($this->apiAccountId, $clickwrap);
+        $this->activateClickwrap($response["clickwrap_id"], $response["version_id"]);
+        return [
+            "clickwrap_id" => $response["clickwrap_id"],
+            "version_id" => $response["version_id"]
+        ];
+    }
+    
+     public function createHtmlClickwrap(string $html, array $parameters)
+    {
+        $document = new Document([
+            'document_base64' => base64_encode($html),
+            'document_html' => $html,
+            'document_name' => $parameters['document_name'] ?? 'certificat_'.uniqid(),
+            'file_extension' => $parameters['file_extension'] ?? 'html',
+        ]);
+        $clickwrap = new ClickwrapRequest([
+            'clickwrap_name' => $parameters['document_name'] ?? 'clickwrap_'.uniqid(),
+            'display_settings' => $this->handleClickwrapSetting($parameters),
+            'documents' => [$document],
+        ]);
         // envoyer le clickwrap et retourner la reponse
         $response = $this->getAccountApi()->createClickwrap($this->apiAccountId, $clickwrap);
         $this->activateClickwrap($response["clickwrap_id"], $response["version_id"]);
